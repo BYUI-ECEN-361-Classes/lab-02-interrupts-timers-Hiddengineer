@@ -38,8 +38,10 @@ extern int best_reaction_time_in_millisec;
 
 // Globals
 #define upper_limit_millisec_to_wait  7000;  //Give the user up to 7 seconds to wonder
+#define lower_limit_millisec_to_wait  3000;  //Give the user at least 3 seconds to wonder
 
 int rand_millisec;
+int rand_output;
 int last_reaction_time_in_millisec = 0;
 bool started_doing_reaction_timers = false;
 
@@ -47,7 +49,8 @@ void show_a_random_number()
 	{
 	if (!started_doing_reaction_timers)
 		{
-		rand_millisec =  rand() % upper_limit_millisec_to_wait;
+		rand_output = rand() + lower_limit_millisec_to_wait;
+		rand_millisec =  rand_output % upper_limit_millisec_to_wait;
 		MultiFunctionShield_Display(rand_millisec);
 		HAL_Delay(2000);  // this is how long before the counter on the 7-Seg display
 		}
@@ -64,13 +67,17 @@ void got_start()
 		*/
 		started_doing_reaction_timers = true;
 	    Clear_LEDs();
-		rand_millisec =  rand() % upper_limit_millisec_to_wait;
+	    rand_output = rand() + lower_limit_millisec_to_wait;
+	    rand_millisec =  rand_output % upper_limit_millisec_to_wait;
 
 	  /**************** STUDENT TO FILL IN START HERE ********************/
-		// Step 1
-		// Step 2
-		// Step 3
-		// Step 4
+	    MultiFunctionShield_Display(rand_millisec); // Step 1
+		HAL_Delay(rand_millisec); // Step 2
+		HAL_GPIO_WritePin(LED_D1_GPIO_Port, LED_D1_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_D4_GPIO_Port, LED_D4_Pin, GPIO_PIN_RESET);// Step 3
+		HAL_TIM_Base_Start_IT(&htim3);// Step 4
 	  /**************** STUDENT TO FILL IN END  HERE ********************/
 	}
 void got_stop()
@@ -86,12 +93,16 @@ void got_stop()
 
 	  /**************** STUDENT TO FILL IN START HERE ********************/
       // 1.) Stop the random timer // Random timer is timer3
-
+		HAL_TIM_Base_Stop_IT(&htim3);
+		HAL_GPIO_WritePin(LED_D1_GPIO_Port, LED_D1_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_D2_GPIO_Port, LED_D2_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_D3_GPIO_Port, LED_D3_Pin, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_D4_GPIO_Port, LED_D4_Pin, GPIO_PIN_SET);
       // 2.) Read the value of the timer -- this step provided
-		last_reaction_time_in_millisec = __HAL_TIM_GetCounter(&htim3) / 10; // Why is it divide by 10?
+		last_reaction_time_in_millisec = __HAL_TIM_GetCounter(&htim3) / 10; // Why is it divide by 10? since the timer goes 10 times in a milisecond
 
 	  // 3.) Display the value
-
+		MultiFunctionShield_Display(last_reaction_time_in_millisec);
 
       /**************** STUDENT TO FILL IN END HERE ********************/
 		// Keep the best time in a global variable
